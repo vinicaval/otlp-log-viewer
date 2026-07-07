@@ -90,7 +90,7 @@ function LogRow({
         />
 
         {/* Severity */}
-        <div className="w-[72px] shrink-0">
+        <div className="w-[100px] shrink-0">
           <SeverityBadge band={log.severityBand} text={log.severityText} compact />
         </div>
 

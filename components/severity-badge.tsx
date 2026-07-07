@@ -8,8 +8,8 @@ interface SeverityBadgeProps {
 
 const BAND_STYLES: Record<SeverityBand, { dot: string; text: string; label: string }> = {
   TRACE: {
-    dot: 'bg-zinc-400 dark:bg-zinc-500',
-    text: 'text-zinc-500 dark:text-zinc-400',
+    dot: 'bg-slate-400 dark:bg-slate-500',
+    text: 'text-slate-500 dark:text-slate-400',
     label: 'TRACE',
   },
   DEBUG: {
@@ -18,8 +18,8 @@ const BAND_STYLES: Record<SeverityBand, { dot: string; text: string; label: stri
     label: 'DEBUG',
   },
   INFO: {
-    dot: 'bg-emerald-400/80 dark:bg-emerald-500/70',
-    text: 'text-emerald-600 dark:text-emerald-400',
+    dot: 'bg-cyan-400/80 dark:bg-cyan-500/70',
+    text: 'text-cyan-600 dark:text-cyan-400',
     label: 'INFO',
   },
   WARN: {
@@ -61,9 +61,9 @@ export function SeverityBadge({ band, text, compact = false }: SeverityBadgeProp
 
 // Severity color values for chart use (must be plain strings, not Tailwind classes)
 export const SEVERITY_CHART_COLORS: Record<SeverityBand, string> = {
-  TRACE: '#a1a1aa', // zinc-400
+  TRACE: '#94a3b8', // slate-400
   DEBUG: '#38bdf8', // sky-400
-  INFO: '#34d399',  // emerald-400
+  INFO: '#22d3ee',  // cyan-400
   WARN: '#fbbf24',  // amber-400
   ERROR: '#fb7185', // rose-400
   FATAL: '#e879f9', // fuchsia-400

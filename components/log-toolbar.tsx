@@ -185,7 +185,7 @@ export function LogToolbar({
           onClick={() =>
             onSeverityFilterChange(allSelected ? [] : [...ALL_BANDS])
           }
-          className={`h-6 px-2 rounded text-[11px] font-medium border transition-colors ${
+          className={`h-6 px-2 rounded text-[11px] font-medium border transition-colors flex items-center justify-center ${
             allSelected
               ? 'bg-muted border-border text-foreground'
               : 'border-border/50 text-muted-foreground hover:text-foreground'
@@ -197,7 +197,7 @@ export function LogToolbar({
           <button
             key={band}
             onClick={() => toggleSeverity(band)}
-            className={`h-6 px-2 rounded border transition-colors ${
+            className={`h-6 px-2 rounded border transition-colors flex items-center justify-center ${
               severityFilter.includes(band)
                 ? 'bg-muted border-border'
                 : 'border-border/50 opacity-50 hover:opacity-80'
