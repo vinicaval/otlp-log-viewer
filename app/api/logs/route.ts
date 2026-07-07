@@ -4,8 +4,11 @@ const UPSTREAM_URL = 'https://take-home-assignment-otlp-logs-api.vercel.app/api/
 
 export async function GET() {
   try {
+    // The upstream endpoint returns fresh random mock data on every call, and
+    // the UI's "Refresh" button relies on that — don't let Next.js's data
+    // cache serve a stale response and make Refresh look like a no-op.
     const res = await fetch(UPSTREAM_URL, {
-      next: { revalidate: 30 },
+      cache: 'no-store',
     })
     if (!res.ok) {
       return NextResponse.json(
