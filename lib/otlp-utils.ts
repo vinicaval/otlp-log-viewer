@@ -29,6 +29,8 @@ export function kvListToRecord(attrs: OtlpKeyValue[]): Record<string, string> {
 }
 
 // ─── Severity mapping (OTLP spec, severity numbers 1-24) ─────────────────────
+// severityNumber 0 (or anything outside 1-24) is UNSPECIFIED per the OTLP spec —
+// it must not be silently reported as INFO, which is a real severity level.
 
 export function severityNumberToBand(n: number): SeverityBand {
   if (n >= 1 && n <= 4) return 'TRACE'
@@ -37,7 +39,7 @@ export function severityNumberToBand(n: number): SeverityBand {
   if (n >= 13 && n <= 16) return 'WARN'
   if (n >= 17 && n <= 20) return 'ERROR'
   if (n >= 21 && n <= 24) return 'FATAL'
-  return 'INFO'
+  return 'UNSPECIFIED'
 }
 
 // ─── Nanosecond timestamp → Date (BigInt-safe) ───────────────────────────────
@@ -131,6 +133,7 @@ export interface HistogramBucket {
   warn: number
   error: number
   fatal: number
+  unspecified: number
 }
 
 export function buildHistogram(
@@ -156,6 +159,7 @@ export function buildHistogram(
     warn: 0,
     error: 0,
     fatal: 0,
+    unspecified: 0,
   }))
 
   for (const log of logs) {

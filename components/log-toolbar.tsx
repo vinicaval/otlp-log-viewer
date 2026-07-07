@@ -8,7 +8,7 @@ import { SeverityBadge } from './severity-badge'
 export type DensityMode = 'condensed' | 'expanded'
 export type ViewMode = 'flat' | 'grouped'
 
-const ALL_BANDS: SeverityBand[] = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
+const ALL_BANDS: SeverityBand[] = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'UNSPECIFIED']
 
 interface LogToolbarProps {
   search: string

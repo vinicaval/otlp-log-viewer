@@ -37,19 +37,18 @@ const BAND_STYLES: Record<SeverityBand, { dot: string; text: string; label: stri
     text: 'text-fuchsia-600 dark:text-fuchsia-400',
     label: 'FATAL',
   },
-}
-
-// Special styling for UNSPECIFIED severity (severity number 0 or missing)
-const UNSPECIFIED_STYLES = {
-  dot: 'bg-stone-400 dark:bg-stone-500',
-  text: 'text-stone-600 dark:text-stone-400',
-  label: 'UNSPECIFIED',
+  // severityNumber 0 (or out of the 1-24 range) per the OTLP spec — must read
+  // as distinctly "unknown", never silently blended into a real severity level.
+  UNSPECIFIED: {
+    dot: 'bg-stone-400 dark:bg-stone-500',
+    text: 'text-stone-600 dark:text-stone-400',
+    label: 'UNSPECIFIED',
+  },
 }
 
 export function SeverityBadge({ band, text, compact = false }: SeverityBadgeProps) {
-  const label = text || BAND_STYLES[band].label
-  // Use UNSPECIFIED styling if the text is literally "UNSPECIFIED"
-  const styles = label === 'UNSPECIFIED' ? UNSPECIFIED_STYLES : BAND_STYLES[band]
+  const styles = BAND_STYLES[band]
+  const label = text || styles.label
 
   return (
     <span
@@ -75,4 +74,5 @@ export const SEVERITY_CHART_COLORS: Record<SeverityBand, string> = {
   WARN: '#fbbf24',  // amber-400
   ERROR: '#fb7185', // rose-400
   FATAL: '#e879f9', // fuchsia-400
+  UNSPECIFIED: '#a8a29e', // stone-400
 }

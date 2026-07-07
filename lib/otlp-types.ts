@@ -56,7 +56,7 @@ export interface OtlpExportLogsServiceRequest {
 
 // ─── Flattened / parsed log record for UI use ───────────────────────────────
 
-export type SeverityBand = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL'
+export type SeverityBand = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL' | 'UNSPECIFIED'
 
 export interface FlatLogRecord {
   id: string // synthetic key for React

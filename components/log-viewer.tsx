@@ -16,7 +16,7 @@ import {
   EmptyState,
 } from './log-skeletons'
 
-const ALL_BANDS: SeverityBand[] = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
+const ALL_BANDS: SeverityBand[] = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'UNSPECIFIED']
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
