@@ -83,4 +83,10 @@ export interface FlatLogRecord {
   // log attributes
   logAttributes: Record<string, string>
   droppedAttributesCount: number
+  // Precomputed lowercase concatenation of every searchable field (body,
+  // service name/namespace, log + resource attribute values). Search
+  // filtering runs on every keystroke (debounced, but still per-log), so
+  // this avoids re-lowercasing and re-walking each log's attributes on
+  // every search instead of once at flatten time.
+  searchHaystack: string
 }
