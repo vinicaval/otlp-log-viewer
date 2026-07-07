@@ -23,15 +23,12 @@ const ROW_HEIGHT_CONDENSED = 32
 const ROW_HEIGHT_EXPANDED = 44
 
 function TimestampCell({ date }: { date: Date }) {
-  const [showAbsolute, setShowAbsolute] = useState(false)
   return (
     <span
-      className="font-mono text-[12px] tabular-nums text-muted-foreground whitespace-nowrap cursor-default select-all"
+      className="font-mono text-[12px] tabular-nums text-muted-foreground whitespace-nowrap cursor-default"
       title={formatAbsoluteTime(date)}
-      onMouseEnter={() => setShowAbsolute(true)}
-      onMouseLeave={() => setShowAbsolute(false)}
     >
-      {showAbsolute ? formatAbsoluteTime(date) : formatRelativeTime(date)}
+      {formatRelativeTime(date)}
     </span>
   )
 }

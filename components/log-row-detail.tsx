@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
 import type { FlatLogRecord } from '@/lib/otlp-types'
 import { AttributeGrid } from './attribute-grid'
+import { formatAbsoluteTime } from '@/lib/otlp-utils'
 
 interface LogRowDetailProps {
   log: FlatLogRecord
@@ -50,6 +51,14 @@ export function LogRowDetail({ log }: LogRowDetailProps) {
 
   return (
     <div className="px-4 py-3 bg-muted/20 border-t border-border font-sans text-[13px]">
+      {/* Timestamp header */}
+      <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-border">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Timestamp
+        </span>
+        <span className="font-mono text-[12px] text-foreground">{formatAbsoluteTime(log.timestamp)}</span>
+      </div>
+
       {/* Service header */}
       {serviceLabel && (
         <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-border">
