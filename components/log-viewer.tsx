@@ -63,17 +63,12 @@ export function LogViewer() {
       )
     }
 
-    // Text search (body + service name + attributes values)
+    // Text search (body + service name + attributes values) — matched
+    // against each log's precomputed lowercase searchHaystack rather than
+    // re-lowercasing/re-walking every field on every search.
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.trim().toLowerCase()
-      logs = logs.filter(
-        (l) =>
-          l.body.toLowerCase().includes(q) ||
-          l.serviceName.toLowerCase().includes(q) ||
-          l.serviceNamespace.toLowerCase().includes(q) ||
-          Object.values(l.logAttributes).some((v) => v.toLowerCase().includes(q)) ||
-          Object.values(l.resourceAttributes).some((v) => v.toLowerCase().includes(q))
-      )
+      logs = logs.filter((l) => l.searchHaystack.includes(q))
     }
 
     // Sort by timestamp descending (newest first)

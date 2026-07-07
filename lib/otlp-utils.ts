@@ -88,6 +88,17 @@ export function flattenLogs(data: OtlpExportLogsServiceRequest): FlatLogRecord[]
           lr.observedTimeUnixNano && lr.observedTimeUnixNano !== '0'
             ? nanosToDate(lr.observedTimeUnixNano)
             : null
+        const logAttrs = kvListToRecord(lr.attributes)
+
+        const searchHaystack = [
+          bodyStr,
+          serviceName,
+          serviceNamespace,
+          ...Object.values(logAttrs),
+          ...Object.values(resourceAttrs),
+        ]
+          .join('\n')
+          .toLowerCase()
 
         records.push({
           id: `log-${_idCounter++}`,
@@ -108,8 +119,9 @@ export function flattenLogs(data: OtlpExportLogsServiceRequest): FlatLogRecord[]
           scopeName,
           scopeVersion,
           scopeAttributes: scopeAttrs,
-          logAttributes: kvListToRecord(lr.attributes),
+          logAttributes: logAttrs,
           droppedAttributesCount: lr.droppedAttributesCount,
+          searchHaystack,
         })
       }
     }
