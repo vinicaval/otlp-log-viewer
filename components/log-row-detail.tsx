@@ -213,7 +213,10 @@ export function LogRowDetail({ log }: LogRowDetailProps) {
           <span className="font-mono text-[12px] tabular-nums text-foreground/90">
             {formatAbsoluteTime(log.timestamp)}
           </span>
-          <span className="font-mono text-[11px] text-muted-foreground/70">
+          <span
+            className="font-mono text-[11px] text-muted-foreground/70"
+            suppressHydrationWarning
+          >
             {formatRelativeTime(log.timestamp)}
           </span>
         </div>

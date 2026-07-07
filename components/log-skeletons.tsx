@@ -1,3 +1,10 @@
+// Deterministic pseudo-random pattern (not Math.random()) so server and
+// client render identical bar heights — calling Math.random() during render
+// produces a value each time it runs, causing a hydration mismatch.
+function skeletonBarHeight(i: number): number {
+  return 20 + Math.abs(Math.sin(i * 12.9898)) * 60
+}
+
 export function HistogramSkeleton() {
   return (
     <div className="h-[120px] border-b border-border px-4 py-3 flex items-end gap-1 animate-pulse">
@@ -5,7 +12,7 @@ export function HistogramSkeleton() {
         <div
           key={i}
           className="flex-1 rounded-sm bg-muted"
-          style={{ height: `${20 + Math.random() * 60}%` }}
+          style={{ height: `${skeletonBarHeight(i)}%` }}
         />
       ))}
     </div>
