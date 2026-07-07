@@ -1,12 +1,12 @@
 'use client'
 
+import { useState, useCallback, useEffect, type KeyboardEvent } from 'react'
 import {
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  type KeyboardEvent,
-} from 'react'
+  List,
+  useListRef,
+  useDynamicRowHeight,
+  type RowComponentProps,
+} from 'react-window'
 import type { FlatLogRecord } from '@/lib/otlp-types'
 import { SeverityBadge } from './severity-badge'
 import { LogRowDetail } from './log-row-detail'
@@ -41,34 +41,40 @@ function TimestampCell({ date }: { date: Date }) {
   )
 }
 
-function LogRow({
-  log,
-  isExpanded,
-  isSelected,
-  onToggle,
-  density,
-  index,
-}: {
-  log: FlatLogRecord
-  isExpanded: boolean
-  isSelected: boolean
-  onToggle: () => void
+interface LogRowProps {
+  logs: FlatLogRecord[]
+  expandedId: string | null
+  selectedIdx: number
   density: DensityMode
-  index: number
-}) {
-  const rowRef = useRef<HTMLDivElement>(null)
+  onToggle: (id: string, idx: number) => void
+}
+
+function LogRow({
+  index,
+  style,
+  ariaAttributes,
+  logs,
+  expandedId,
+  selectedIdx,
+  density,
+  onToggle,
+}: RowComponentProps<LogRowProps>) {
+  const log = logs[index]
+  const isExpanded = expandedId === log.id
+  const isSelected = selectedIdx === index
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      onToggle()
+      onToggle(log.id, index)
     }
   }
 
   return (
     <div
-      ref={rowRef}
-      data-log-index={index}
+      style={style}
+      data-index={index}
+      {...ariaAttributes}
       className={`border-b border-border transition-colors ${
         isSelected ? 'bg-muted/40' : 'hover:bg-muted/20'
       }`}
@@ -77,7 +83,7 @@ function LogRow({
       <div
         role="button"
         tabIndex={0}
-        onClick={onToggle}
+        onClick={() => onToggle(log.id, index)}
         onKeyDown={handleKeyDown}
         className={`flex items-center gap-3 px-4 cursor-pointer group ${
           density === 'condensed' ? 'py-1.5' : 'py-2.5'
@@ -134,15 +140,29 @@ function LogRow({
 export function LogList({ logs, density, enableKeyboardNav = true }: LogListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const listRef = useListRef(null)
 
-  const toggleExpand = useCallback(
-    (id: string, idx: number) => {
-      setExpandedId((prev) => (prev === id ? null : id))
-      setSelectedIdx(idx)
-    },
-    []
-  )
+  const defaultRowHeight = density === 'condensed' ? ROW_HEIGHT_CONDENSED : ROW_HEIGHT_EXPANDED
+  // Row heights aren't known ahead of time — an expanded row's detail panel
+  // varies with attribute/body content — so they're measured off the actual
+  // rendered row elements rather than estimated.
+  const dynamicRowHeight = useDynamicRowHeight({ defaultRowHeight, key: density })
+
+  const toggleExpand = useCallback((id: string, idx: number) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+    setSelectedIdx(idx)
+  }, [])
+
+  // Re-observe the currently rendered row elements on every render so newly
+  // mounted/resized rows (e.g. a row that just expanded) get measured. This
+  // effect's cleanup runs automatically before the next render's effect (and
+  // on unmount), unobserving the previous batch first — this never leaks.
+  useEffect(() => {
+    const el = listRef.current?.element
+    if (!el) return
+    const rowElements = el.querySelectorAll('[data-index]')
+    return dynamicRowHeight.observeRowElements(rowElements)
+  })
 
   // Keyboard navigation: j/k / arrow keys, Esc to collapse
   useEffect(() => {
@@ -161,14 +181,14 @@ export function LogList({ logs, density, enableKeyboardNav = true }: LogListProp
         e.preventDefault()
         setSelectedIdx((prev) => {
           const next = Math.min(prev + 1, logs.length - 1)
-          scrollToIdx(next)
+          listRef.current?.scrollToRow({ index: next, align: 'auto', behavior: 'smooth' })
           return next
         })
       } else if (e.key === 'k' || e.key === 'ArrowUp') {
         e.preventDefault()
         setSelectedIdx((prev) => {
           const next = Math.max(prev - 1, 0)
-          scrollToIdx(next)
+          listRef.current?.scrollToRow({ index: next, align: 'auto', behavior: 'smooth' })
           return next
         })
       } else if (e.key === 'Enter' || e.key === ' ') {
@@ -182,33 +202,21 @@ export function LogList({ logs, density, enableKeyboardNav = true }: LogListProp
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [logs, selectedIdx, enableKeyboardNav])
-
-  function scrollToIdx(idx: number) {
-    const el = containerRef.current?.querySelector(`[data-log-index="${idx}"]`)
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }
+  }, [logs, selectedIdx, enableKeyboardNav, listRef])
 
   if (logs.length === 0) return null
 
   return (
-    <div
-      ref={containerRef}
-      className="overflow-y-auto flex-1"
-      role="list"
-      aria-label="Log records"
-    >
-      {logs.map((log, idx) => (
-        <LogRow
-          key={log.id}
-          log={log}
-          isExpanded={expandedId === log.id}
-          isSelected={selectedIdx === idx}
-          onToggle={() => toggleExpand(log.id, idx)}
-          density={density}
-          index={idx}
-        />
-      ))}
+    <div className="flex-1 min-h-0" role="list" aria-label="Log records">
+      <List
+        listRef={listRef}
+        rowComponent={LogRow}
+        rowCount={logs.length}
+        rowHeight={dynamicRowHeight}
+        rowProps={{ logs, expandedId, selectedIdx, density, onToggle: toggleExpand }}
+        overscanCount={8}
+        className="h-full"
+      />
     </div>
   )
 }
