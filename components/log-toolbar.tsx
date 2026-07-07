@@ -22,6 +22,12 @@ interface LogToolbarProps {
   totalCount: number
   filteredCount: number
   isLoading: boolean
+  // SWR's `isLoading` is only true for the very first fetch (no data yet);
+  // it stays false for every subsequent Refresh since data already exists.
+  // `isRefreshing` (SWR's isValidating) covers those too, so the spinner
+  // actually animates on refresh and the button can be disabled to guard
+  // against duplicate concurrent requests to the upstream API.
+  isRefreshing: boolean
   onRefresh: () => void
 }
 
@@ -37,6 +43,7 @@ export function LogToolbar({
   totalCount,
   filteredCount,
   isLoading,
+  isRefreshing,
   onRefresh,
 }: LogToolbarProps) {
   const searchRef = useRef<HTMLInputElement>(null)
@@ -164,11 +171,12 @@ export function LogToolbar({
         {/* Refresh */}
         <button
           onClick={onRefresh}
-          className="flex items-center justify-center h-8 w-8 rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors"
+          disabled={isRefreshing}
+          className="flex items-center justify-center h-8 w-8 rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
           title="Refresh logs"
           aria-label="Refresh logs"
         >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+          <RefreshCw size={14} className={isLoading || isRefreshing ? 'animate-spin' : ''} />
         </button>
 
         {/* Count */}

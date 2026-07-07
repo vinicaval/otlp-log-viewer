@@ -36,6 +36,7 @@ export function LogViewer() {
     data: rawData,
     error,
     isLoading,
+    isValidating,
     mutate,
   } = useSWR<OtlpExportLogsServiceRequest>('/api/logs', fetcher, {
     revalidateOnFocus: false,
@@ -132,6 +133,7 @@ export function LogViewer() {
         totalCount={allLogs.length}
         filteredCount={filteredLogs.length}
         isLoading={isLoading}
+        isRefreshing={isValidating}
         onRefresh={() => mutate()}
       />
 
