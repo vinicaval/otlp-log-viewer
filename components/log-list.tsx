@@ -17,6 +17,14 @@ import { ChevronRight } from 'lucide-react'
 interface LogListProps {
   logs: FlatLogRecord[]
   density: DensityMode
+  // LogGroupedView renders one LogList per expanded service group. Each
+  // instance used to register its own document-level j/k/Enter/Esc listener
+  // and own its own selection state, so with multiple groups expanded a
+  // single keypress would move/expand a row in *every* group at once.
+  // Keyboard nav is only meaningful for a single authoritative list, so it's
+  // opt-in and only the top-level flat view enables it; grouped-view rows
+  // remain fully clickable, just without the global hotkeys.
+  enableKeyboardNav?: boolean
 }
 
 const ROW_HEIGHT_CONDENSED = 32
@@ -123,7 +131,7 @@ function LogRow({
   )
 }
 
-export function LogList({ logs, density }: LogListProps) {
+export function LogList({ logs, density, enableKeyboardNav = true }: LogListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -138,6 +146,8 @@ export function LogList({ logs, density }: LogListProps) {
 
   // Keyboard navigation: j/k / arrow keys, Esc to collapse
   useEffect(() => {
+    if (!enableKeyboardNav) return
+
     const handler = (e: globalThis.KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
@@ -172,7 +182,7 @@ export function LogList({ logs, density }: LogListProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [logs, selectedIdx])
+  }, [logs, selectedIdx, enableKeyboardNav])
 
   function scrollToIdx(idx: number) {
     const el = containerRef.current?.querySelector(`[data-log-index="${idx}"]`)

@@ -108,7 +108,7 @@ function ServiceGroupPanel({
       {/* Nested log list */}
       {open && (
         <div className="border-t border-border bg-background/50">
-          <LogList logs={group.logs} density={density} />
+          <LogList logs={group.logs} density={density} enableKeyboardNav={false} />
         </div>
       )}
     </div>
