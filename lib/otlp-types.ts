@@ -61,11 +61,16 @@ export type SeverityBand = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATA
 export interface FlatLogRecord {
   id: string // synthetic key for React
   timestamp: Date
+  observedTimestamp: Date | null
   severityNumber: number
   severityBand: SeverityBand
   severityText: string
   body: string
   bodyIsJson: boolean
+  // correlation
+  traceId: string
+  spanId: string
+  flags: number
   // resource
   serviceName: string
   serviceNamespace: string
@@ -73,6 +78,7 @@ export interface FlatLogRecord {
   resourceAttributes: Record<string, string>
   // scope
   scopeName: string
+  scopeVersion: string
   scopeAttributes: Record<string, string>
   // log attributes
   logAttributes: Record<string, string>

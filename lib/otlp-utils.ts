@@ -77,24 +77,34 @@ export function flattenLogs(data: OtlpExportLogsServiceRequest): FlatLogRecord[]
     for (const sl of rl.scopeLogs) {
       const scopeAttrs = kvListToRecord(sl.scope.attributes ?? [])
       const scopeName = sl.scope.name ?? ''
+      const scopeVersion = sl.scope.version ?? ''
 
       for (const lr of sl.logRecords) {
         const bodyStr = lr.body.stringValue ?? anyValueToString(lr.body)
         const timestamp = nanosToDate(lr.timeUnixNano)
+        const observedTimestamp =
+          lr.observedTimeUnixNano && lr.observedTimeUnixNano !== '0'
+            ? nanosToDate(lr.observedTimeUnixNano)
+            : null
 
         records.push({
           id: `log-${_idCounter++}`,
           timestamp,
+          observedTimestamp,
           severityNumber: lr.severityNumber,
           severityBand: severityNumberToBand(lr.severityNumber),
           severityText: lr.severityText || severityNumberToBand(lr.severityNumber),
           body: bodyStr,
           bodyIsJson: detectJson(bodyStr),
+          traceId: lr.traceId ?? '',
+          spanId: lr.spanId ?? '',
+          flags: lr.flags ?? 0,
           serviceName,
           serviceNamespace,
           serviceVersion,
           resourceAttributes: resourceAttrs,
           scopeName,
+          scopeVersion,
           scopeAttributes: scopeAttrs,
           logAttributes: kvListToRecord(lr.attributes),
           droppedAttributesCount: lr.droppedAttributesCount,
