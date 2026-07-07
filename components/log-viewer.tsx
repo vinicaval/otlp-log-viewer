@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import type { OtlpExportLogsServiceRequest } from '@/lib/otlp-types'
 import type { SeverityBand } from '@/lib/otlp-types'
 import { flattenLogs, buildHistogram } from '@/lib/otlp-utils'
+import { useDebouncedValue } from '@/lib/use-debounced-value'
 import { LogToolbar, type DensityMode, type ViewMode } from './log-toolbar'
 import { LogHistogram } from './log-histogram'
 import { LogList } from './log-list'
@@ -22,6 +23,10 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 export function LogViewer() {
   const [search, setSearch] = useState('')
+  // The input itself stays bound to `search` (instant feedback), but
+  // filtering runs off a debounced value — typing fast shouldn't trigger a
+  // full filter+sort pass over every log on every keystroke.
+  const debouncedSearch = useDebouncedValue(search, 200)
   const [severityFilter, setSeverityFilter] = useState<SeverityBand[]>([...ALL_BANDS])
   const [density, setDensity] = useState<DensityMode>('condensed')
   const [viewMode, setViewMode] = useState<ViewMode>('flat')
@@ -59,8 +64,8 @@ export function LogViewer() {
     }
 
     // Text search (body + service name + attributes values)
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.trim().toLowerCase()
       logs = logs.filter(
         (l) =>
           l.body.toLowerCase().includes(q) ||
@@ -75,7 +80,7 @@ export function LogViewer() {
     logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 
     return logs
-  }, [allLogs, severityFilter, search, brushRange])
+  }, [allLogs, severityFilter, debouncedSearch, brushRange])
 
   const histogramBuckets = useMemo(
     () => buildHistogram(filteredLogs, 30),
@@ -83,7 +88,7 @@ export function LogViewer() {
   )
 
   const hasFilters =
-    search.trim().length > 0 ||
+    debouncedSearch.trim().length > 0 ||
     severityFilter.length !== ALL_BANDS.length ||
     brushRange !== null
 
