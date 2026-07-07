@@ -81,13 +81,15 @@ function LogRow({
         aria-label={`Log entry: ${log.severityBand} - ${log.body.slice(0, 80)}`}
       >
         {/* Expand chevron */}
-        <ChevronRight
-          size={13}
-          className={`shrink-0 text-muted-foreground/50 group-hover:text-muted-foreground transition-all duration-150 ${
-            isExpanded ? 'rotate-90' : ''
-          }`}
-          aria-hidden
-        />
+        <div className="flex items-center justify-center w-5 h-5 shrink-0">
+          <ChevronRight
+            size={16}
+            className={`text-muted-foreground/50 group-hover:text-muted-foreground transition-all duration-150 ${
+              isExpanded ? 'rotate-90' : ''
+            }`}
+            aria-hidden
+          />
+        </div>
 
         {/* Severity */}
         <div className="w-[100px] shrink-0">
