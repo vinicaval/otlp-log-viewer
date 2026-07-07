@@ -199,6 +199,13 @@ export function LogRowDetail({ log }: LogRowDetailProps) {
     )
   )
 
+  // trace.id/span.id already surface as dedicated Trace ID/Span ID rows
+  // above (see log.traceId/log.spanId) — don't show them a second time
+  // in the generic attribute list.
+  const logAttrsFiltered = Object.fromEntries(
+    Object.entries(log.logAttributes).filter(([k]) => !['trace.id', 'span.id'].includes(k))
+  )
+
   return (
     <div className="border-t border-border bg-muted/[0.03] px-4 py-4 flex flex-col gap-4">
       {/* Header: severity + timestamps */}
@@ -287,11 +294,11 @@ export function LogRowDetail({ log }: LogRowDetailProps) {
       <Section
         icon={Tag}
         title="Log Attributes"
-        count={Object.keys(log.logAttributes).length}
+        count={Object.keys(logAttrsFiltered).length}
         collapsible
         defaultOpen
       >
-        <AttributeTable attrs={log.logAttributes} />
+        <AttributeTable attrs={logAttrsFiltered} />
       </Section>
 
       {Object.keys(resourceAttrsFiltered).length > 0 && (
