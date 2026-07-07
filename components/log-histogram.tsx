@@ -19,6 +19,12 @@ interface LogHistogramProps {
   onBrushChange: (range: [number, number] | null) => void
 }
 
+// Display-only formatting (HH:MM:SS, UTC). Deliberately NOT used as a data
+// key anywhere below — with 30 buckets over a ~24h span (the mock API's
+// typical range) two different buckets can easily land on the same
+// HH:MM:SS across a day boundary, and Recharts' categorical axis treats
+// equal dataKey values as the *same* category, silently merging bars that
+// share a label. Buckets are keyed by their unique startMs instead.
 function formatBucketLabel(ms: number): string {
   const d = new Date(ms)
   return `${d.getUTCHours().toString().padStart(2, '0')}:${d
@@ -40,7 +46,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
   return (
     <div className="rounded-md border border-border bg-popover p-2.5 shadow-md text-[12px] font-mono min-w-[140px]">
-      <p className="text-muted-foreground mb-1.5 text-[11px]">{label}</p>
+      <p className="text-muted-foreground mb-1.5 text-[11px]">
+        {label ? formatBucketLabel(Number(label)) : ''}
+      </p>
       {payload
         .filter((p) => p.value > 0)
         .map((p) => (
@@ -71,27 +79,24 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
   const handleMouseDown = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
-      if (!e?.activeLabel) return
-      const label = String(e.activeLabel)
-      const idx = buckets.findIndex((b) => formatBucketLabel(b.startMs) === label)
-      if (idx === -1) return
+      const idx = e?.activeTooltipIndex
+      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
       setSelectionStart(idx)
       setSelectionCurrent(idx)
       setIsDragging(true)
     },
-    [buckets]
+    [buckets.length]
   )
 
   const handleMouseMove = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
-      if (!isDragging || !e?.activeLabel) return
-      const label = String(e.activeLabel)
-      const idx = buckets.findIndex((b) => formatBucketLabel(b.startMs) === label)
-      if (idx === -1) return
+      if (!isDragging) return
+      const idx = e?.activeTooltipIndex
+      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
       setSelectionCurrent(idx)
     },
-    [isDragging, buckets]
+    [isDragging, buckets.length]
   )
 
   const handleMouseUp = useCallback(() => {
@@ -112,23 +117,24 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
     setSelectionCurrent(null)
   }, [isDragging, selectionStart, selectionCurrent, buckets, onBrushChange])
 
-  // Reference area bounds
+  // Reference area bounds — keyed by each bucket's unique startMs, not the
+  // (possibly colliding) display label. See formatBucketLabel's comment.
   const refStart =
     selectionStart !== null && selectionCurrent !== null
-      ? formatBucketLabel(buckets[Math.min(selectionStart, selectionCurrent)].startMs)
+      ? String(buckets[Math.min(selectionStart, selectionCurrent)].startMs)
       : brushRange
-        ? formatBucketLabel(buckets.find((b) => b.startMs <= brushRange[0] && b.endMs >= brushRange[0])?.startMs ?? brushRange[0])
+        ? String(buckets.find((b) => b.startMs <= brushRange[0] && b.endMs >= brushRange[0])?.startMs ?? brushRange[0])
         : undefined
 
   const refEnd =
     selectionStart !== null && selectionCurrent !== null
-      ? formatBucketLabel(buckets[Math.max(selectionStart, selectionCurrent)].startMs)
+      ? String(buckets[Math.max(selectionStart, selectionCurrent)].startMs)
       : brushRange
-        ? formatBucketLabel(buckets.find((b) => b.startMs <= brushRange[1] && b.endMs >= brushRange[1])?.startMs ?? brushRange[1])
+        ? String(buckets.find((b) => b.startMs <= brushRange[1] && b.endMs >= brushRange[1])?.startMs ?? brushRange[1])
         : undefined
 
   const chartData = buckets.map((b) => ({
-    label: formatBucketLabel(b.startMs),
+    label: String(b.startMs),
     TRACE: b.trace,
     DEBUG: b.debug,
     INFO: b.info,
@@ -158,6 +164,7 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
         >
           <XAxis
             dataKey="label"
+            tickFormatter={(value) => formatBucketLabel(Number(value))}
             tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--color-muted-foreground)' }}
             axisLine={false}
             tickLine={false}
