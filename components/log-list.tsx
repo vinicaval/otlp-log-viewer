@@ -92,18 +92,18 @@ function LogRow({
         </div>
 
         {/* Severity */}
-        <div className="w-[100px] shrink-0">
+        <div className="w-[100px] shrink-0 flex items-center">
           <SeverityBadge band={log.severityBand} text={log.severityText} compact />
         </div>
 
         {/* Timestamp */}
-        <div className="w-[88px] shrink-0">
+        <div className="w-[88px] shrink-0 flex items-center">
           <TimestampCell date={log.timestamp} />
         </div>
 
         {/* Service pill */}
         {log.serviceName && (
-          <span className="hidden sm:inline-block shrink-0 font-mono text-[11px] text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5 whitespace-nowrap max-w-[120px] truncate">
+          <span className="hidden sm:inline-flex sm:items-center shrink-0 font-mono text-[11px] text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5 whitespace-nowrap max-w-[120px] truncate">
             {log.serviceNamespace
               ? `${log.serviceNamespace}/${log.serviceName}`
               : log.serviceName}
@@ -112,7 +112,7 @@ function LogRow({
 
         {/* Body */}
         <span
-          className={`font-mono text-[13px] text-foreground/90 min-w-0 truncate leading-snug ${
+          className={`font-mono text-[13px] text-foreground/90 min-w-0 truncate leading-tight ${
             density === 'expanded' ? 'line-clamp-2 whitespace-normal' : ''
           }`}
         >
