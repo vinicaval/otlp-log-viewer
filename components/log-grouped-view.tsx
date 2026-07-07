@@ -67,6 +67,10 @@ function SeverityCountBar({
   )
 }
 
+const ROW_HEIGHT_CONDENSED = 32
+const ROW_HEIGHT_EXPANDED = 44
+const MAX_GROUP_LIST_HEIGHT = 420
+
 function ServiceGroupPanel({
   group,
   density,
@@ -78,6 +82,12 @@ function ServiceGroupPanel({
   const displayName = group.serviceNamespace
     ? `${group.serviceNamespace} / ${group.serviceName}`
     : group.serviceName
+
+  // LogList virtualizes its rows, which needs a bounded height to size
+  // against — cap it, but don't reserve more space than the group actually
+  // has content for.
+  const rowHeight = density === 'condensed' ? ROW_HEIGHT_CONDENSED : ROW_HEIGHT_EXPANDED
+  const listHeight = Math.min(group.logs.length * rowHeight, MAX_GROUP_LIST_HEIGHT)
 
   return (
     <div className="border-b border-border last:border-0">
@@ -107,7 +117,10 @@ function ServiceGroupPanel({
 
       {/* Nested log list */}
       {open && (
-        <div className="border-t border-border bg-background/50">
+        <div
+          className="border-t border-border bg-background/50 flex flex-col"
+          style={{ height: listHeight }}
+        >
           <LogList logs={group.logs} density={density} enableKeyboardNav={false} />
         </div>
       )}
