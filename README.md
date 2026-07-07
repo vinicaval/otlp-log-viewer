@@ -1,33 +1,52 @@
-# otlp-log-viewer
+# OTLP Log Viewer
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+A log viewer for OTLP (OpenTelemetry Protocol) log records — built for engineers to quickly scan logs, drill into details, and spot distribution patterns across services.
 
-## Built with v0
+## Features
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+- **Log list** — Severity / Time / Body columns, virtualized for smooth scrolling over large result sets. Each row expands inline into a full detail panel (message, metadata, log/resource/scope attributes), with JSON bodies pretty-printed and every value copyable.
+- **Histogram** — Time-bucketed, severity-stacked bar chart above the list. Drag across it to brush-select a time range and filter the list to it; hover a bucket for an exact per-severity breakdown.
+- **Group by service** — Toggle between a flat chronological list and groups keyed by `service.namespace`/`service.name`, each collapsible with its own count and severity breakdown.
+- **Search & severity filters**, a **density toggle** (condensed/expanded rows), and **keyboard navigation** (`/` to search, `j`/`k` to move, `Enter` to expand, `Esc` to collapse) in the flat view.
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_4qGhTg1g158IHAxDtAW8egZsRrfm)
+## Design notes
 
-## Getting Started
+Built with sustained reading comfort in mind — this is a screen an engineer might stare at for a while during an incident, not a marketing page:
 
-First, run the development server:
+- Geist Sans / Geist Mono throughout, monospace for anything technical (timestamps, IDs, attribute keys/values) with `tabular-nums` for alignment.
+- Dark mode by default, near-black rather than pure black, muted severity colors — legible at a glance without being harsh over long sessions.
+- Severity is never color-only: every badge pairs a color dot with a text label.
+- No query language required to explore the data — plain-text search and one-click severity filters instead of a DSL.
+
+## Stack
+
+Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts (histogram) + `react-window` (list virtualization) + SWR (data fetching).
+
+## Architecture
+
+- `app/api/logs/route.ts` proxies the upstream mock API server-side (`cache: 'no-store'` — the upstream returns fresh random data on every call, and the UI's Refresh button depends on that).
+- `lib/otlp-types.ts` / `lib/otlp-utils.ts` — OTLP wire types kept separate from the app's flattened `FlatLogRecord` shape, with all the nested-data transformation (nanosecond timestamp parsing via `BigInt`, OTLP `AnyValue` → plain string, severity-number → severity-band mapping, histogram bucketing) isolated into pure, unit-testable functions rather than scattered across components.
+- `components/log-viewer.tsx` owns all UI state (search, filters, density, view mode, time-brush range) and derives the filtered/bucketed data via `useMemo`; `LogList`, `LogGroupedView`, and `LogHistogram` are otherwise presentational.
+
+See [CLAUDE.md](./CLAUDE.md) for a more detailed architecture walkthrough.
+
+## Getting started
+
+Requires Node.js ≥ 20.9.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm lint    # eslint
+pnpm build   # production build (type-checked)
+```
 
-## Learn More
+## Known trade-offs
 
-To learn more, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+- Keyboard navigation (`j`/`k`/`Enter`) is scoped to the flat view only. Grouped view renders one list per service group; wiring a single global keyboard-nav scope across multiple independently-collapsible lists was left out to avoid a heavier state-lifting change for a secondary affordance — expand/collapse via click works the same in both views.
+- The histogram's drag-to-brush interaction uses Recharts' `activeTooltipIndex` rather than a label-based lookup, specifically to stay correct when the log span crosses a UTC day boundary (two buckets can otherwise land on the same displayed `HH:MM:SS`).

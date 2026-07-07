@@ -35,6 +35,10 @@ function TimestampCell({ date }: { date: Date }) {
     <span
       className="font-mono text-[12px] tabular-nums text-muted-foreground whitespace-nowrap cursor-default"
       title={formatAbsoluteTime(date)}
+      // "Xs/Xm ago" is computed against Date.now(), which necessarily
+      // differs by a few seconds between server render and client
+      // hydration — this is expected drift, not a real mismatch to patch up.
+      suppressHydrationWarning
     >
       {formatRelativeTime(date)}
     </span>
