@@ -135,9 +135,10 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
     WARN: b.warn,
     ERROR: b.error,
     FATAL: b.fatal,
+    UNSPECIFIED: b.unspecified,
   }))
 
-  const bands = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const
+  const bands = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'UNSPECIFIED'] as const
 
   return (
     <div

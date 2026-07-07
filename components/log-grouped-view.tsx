@@ -26,7 +26,7 @@ function buildGroups(logs: FlatLogRecord[]): ServiceGroup[] {
         serviceName: log.serviceName || 'unknown',
         serviceNamespace: log.serviceNamespace,
         logs: [],
-        severityCounts: { TRACE: 0, DEBUG: 0, INFO: 0, WARN: 0, ERROR: 0, FATAL: 0 },
+        severityCounts: { TRACE: 0, DEBUG: 0, INFO: 0, WARN: 0, ERROR: 0, FATAL: 0, UNSPECIFIED: 0 },
       })
     }
     const group = map.get(key)!
@@ -43,7 +43,7 @@ function buildGroups(logs: FlatLogRecord[]): ServiceGroup[] {
   )
 }
 
-const BADGE_BANDS: SeverityBand[] = ['FATAL', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE']
+const BADGE_BANDS: SeverityBand[] = ['FATAL', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE', 'UNSPECIFIED']
 
 function SeverityCountBar({
   counts,
