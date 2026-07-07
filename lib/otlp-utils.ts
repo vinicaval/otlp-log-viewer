@@ -109,8 +109,12 @@ export function flattenLogs(data: OtlpExportLogsServiceRequest): FlatLogRecord[]
           severityText: lr.severityText || severityNumberToBand(lr.severityNumber),
           body: bodyStr,
           bodyIsJson: detectJson(bodyStr),
-          traceId: lr.traceId ?? '',
-          spanId: lr.spanId ?? '',
+          // This API never actually populates the OTLP wire format's
+          // top-level traceId/spanId fields — it puts them under
+          // attributes["trace.id"]/["span.id"] instead. Prefer the
+          // spec-correct field when present, fall back to the attribute.
+          traceId: lr.traceId || logAttrs['trace.id'] || '',
+          spanId: lr.spanId || logAttrs['span.id'] || '',
           flags: lr.flags ?? 0,
           serviceName,
           serviceNamespace,
