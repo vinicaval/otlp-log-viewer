@@ -71,6 +71,9 @@ export function LogViewer() {
       )
     }
 
+    // Sort by timestamp descending (newest first)
+    logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+
     return logs
   }, [allLogs, severityFilter, search, brushRange])
 
