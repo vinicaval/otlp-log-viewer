@@ -107,11 +107,15 @@ export function LogViewer() {
         </div>
         <span className="text-[11px] font-mono text-muted-foreground hidden sm:block">
           press <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">/</kbd> to search
-          &nbsp;·&nbsp;
-          <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">j</kbd>
-          <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">k</kbd> to navigate
-          &nbsp;·&nbsp;
-          <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">↵</kbd> to expand
+          {viewMode === 'flat' && (
+            <>
+              &nbsp;·&nbsp;
+              <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">j</kbd>
+              <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">k</kbd> to navigate
+              &nbsp;·&nbsp;
+              <kbd className="bg-muted rounded px-1 py-0.5 text-[10px]">↵</kbd> to expand
+            </>
+          )}
         </span>
       </header>
 
