@@ -52,9 +52,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Playwright browser binaries are cached by exact package version —
-      # the cache key is invalidated automatically whenever @playwright/test
-      # is upgraded, avoiding a stale-browser/library mismatch.
+      # Playwright browser binaries are cached by a hash of the whole
+      # lockfile, so any dependency change (not just @playwright/test)
+      # invalidates the cache, avoiding a stale-browser/library mismatch.
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
