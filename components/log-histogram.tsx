@@ -66,7 +66,6 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const row = payload[0]?.payload
   const startMs = row ? Number(row.label) : NaN
   const endMs = row?.endMs
-  const hasEndMs = Number.isFinite(endMs)
 
   return (
     <div className="rounded-lg border border-border bg-popover/95 backdrop-blur-sm p-3 shadow-lg text-[12px] font-mono min-w-[180px]">
@@ -74,7 +73,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         <p className="text-foreground text-[12px] font-medium">
           {Number.isFinite(startMs) ? formatFullTimestamp(startMs) : ''}
         </p>
-        {hasEndMs ? (
+        {endMs !== undefined && Number.isFinite(endMs) ? (
           <p className="text-muted-foreground text-[10px] mt-0.5">
             {`until ${hhmm(new Date(endMs))}:${pad(new Date(endMs).getUTCSeconds())}`}
           </p>
