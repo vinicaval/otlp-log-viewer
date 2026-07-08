@@ -20,7 +20,7 @@ Built with sustained reading comfort in mind — this is a screen an engineer mi
 
 ## Stack
 
-Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts (histogram) + `react-window` (list virtualization) + SWR (data fetching).
+Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts (histogram) + `react-window` (list virtualization) + SWR (data fetching) + Vitest/Testing Library (unit tests) + Playwright (e2e tests).
 
 ## Architecture
 
@@ -29,6 +29,10 @@ Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts 
 - `components/log-viewer.tsx` owns all UI state (search, filters, density, view mode, time-brush range) and derives the filtered/bucketed data via `useMemo`; `LogList`, `LogGroupedView`, and `LogHistogram` are otherwise presentational.
 
 See [CLAUDE.md](./CLAUDE.md) for a more detailed architecture walkthrough.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR to `main`: a lint + typecheck + unit-test job, and a separate Playwright e2e job (Chromium, with a cached browser install and a report artifact uploaded on failure).
 
 ## Getting started
 
@@ -42,8 +46,10 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
-pnpm lint    # eslint
-pnpm build   # production build (type-checked)
+pnpm lint      # eslint
+pnpm build     # production build (type-checked)
+pnpm test      # unit tests (vitest)
+pnpm test:e2e  # e2e tests (playwright)
 ```
 
 ## Known trade-offs
