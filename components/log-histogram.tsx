@@ -25,28 +25,32 @@ function pad(n: number): string {
   return n.toString().padStart(2, '0')
 }
 
-// Compact, span-aware axis tick. For multi-hour ranges we drop seconds and
-// show HH:MM (optionally a day marker at midnight boundaries); for short
-// ranges we keep seconds so adjacent buckets stay distinguishable.
+const HOUR_MS = 3600_000
+const DAY_MS = 24 * HOUR_MS
+
+function hhmm(d: Date): string {
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
+}
+
+// Compact, span-aware axis tick. For multi-day ranges each tick carries its
+// own date (HH:MM alone would collide across day boundaries); for
+// multi-hour ranges we drop seconds and show HH:MM; for short ranges we
+// keep seconds so adjacent buckets stay distinguishable.
 function formatAxisTick(ms: number, spanMs: number): string {
   const d = new Date(ms)
-  const isDayStart = d.getUTCHours() === 0 && d.getUTCMinutes() === 0
-  if (spanMs >= 6 * 3600_000) {
-    // wide range → HH:MM, with a date chip at the start of a UTC day
-    return isDayStart ? `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}` : `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
+  if (spanMs >= DAY_MS) {
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()} ${hhmm(d)}`
   }
-  if (spanMs >= 3600_000) {
-    return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
+  if (spanMs >= HOUR_MS) {
+    return hhmm(d)
   }
-  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`
+  return `${hhmm(d)}:${pad(d.getUTCSeconds())}`
 }
 
 // Full, human-readable timestamp for the tooltip header.
 function formatFullTimestamp(ms: number): string {
   const d = new Date(ms)
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${pad(d.getUTCHours())}:${pad(
-    d.getUTCMinutes()
-  )}:${pad(d.getUTCSeconds())} UTC`
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${hhmm(d)}:${pad(d.getUTCSeconds())} UTC`
 }
 
 interface CustomTooltipProps {
@@ -62,6 +66,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const row = payload[0]?.payload
   const startMs = row ? Number(row.label) : NaN
   const endMs = row?.endMs
+  const hasEndMs = Number.isFinite(endMs)
 
   return (
     <div className="rounded-lg border border-border bg-popover/95 backdrop-blur-sm p-3 shadow-lg text-[12px] font-mono min-w-[180px]">
@@ -69,11 +74,9 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         <p className="text-foreground text-[12px] font-medium">
           {Number.isFinite(startMs) ? formatFullTimestamp(startMs) : ''}
         </p>
-        {endMs ? (
+        {hasEndMs ? (
           <p className="text-muted-foreground text-[10px] mt-0.5">
-            {`through ${pad(new Date(endMs).getUTCHours())}:${pad(
-              new Date(endMs).getUTCMinutes()
-            )}:${pad(new Date(endMs).getUTCSeconds())}`}
+            {`through ${hhmm(new Date(endMs))}:${pad(new Date(endMs).getUTCSeconds())}`}
           </p>
         ) : null}
       </div>
@@ -145,8 +148,9 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
     setSelectionCurrent(null)
   }, [isDragging, selectionStart, selectionCurrent, buckets, onBrushChange])
 
-  // Reference area bounds — keyed by each bucket's unique startMs, not the
-  // (possibly colliding) display label. See formatBucketLabel's comment.
+  // Reference area bounds — keyed by each bucket's unique startMs. With 30
+  // buckets over a wide span, two buckets can render the same axis label
+  // (see formatAxisTick), so the label text itself is not a safe key.
   const refStart =
     selectionStart !== null && selectionCurrent !== null
       ? String(buckets[Math.min(selectionStart, selectionCurrent)].startMs)
