@@ -7,13 +7,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Package manager is **pnpm** (see `pnpm-lock.yaml`; do not use npm/yarn lockfiles).
 
 ```bash
-pnpm dev      # start Next.js dev server (http://localhost:3000)
-pnpm build    # production build
-pnpm start    # run production build
-pnpm lint     # eslint .
+pnpm dev        # start Next.js dev server (http://localhost:3000)
+pnpm build      # production build
+pnpm start      # run production build
+pnpm lint       # eslint .
+pnpm test       # vitest run — unit tests (lib/*.test.ts)
+pnpm test:watch # vitest, watch mode
+pnpm test:e2e   # playwright test — e2e specs in e2e/
 ```
 
-There is no test runner configured in this repo. `next.config.mjs` sets `typescript.ignoreBuildErrors: true`, so `pnpm build` will NOT fail on type errors — run `npx tsc --noEmit` explicitly to catch type issues.
+`next.config.mjs` no longer disables type checking, so `pnpm build` fails on type errors (no need to run `tsc --noEmit` separately).
 
 ## Architecture
 
@@ -40,8 +43,8 @@ This is a single-page OTLP (OpenTelemetry Protocol) log viewer: Next.js App Rout
 
 **Styling:** Tailwind v4 with CSS variables defined in `app/globals.css` (shadcn "base-nova" style, `components.json`). Dark mode is the default (`<html class="dark">` in `app/layout.tsx`); severity colors and chart colors are defined once in `components/severity-badge.tsx` (`BAND_STYLES` for Tailwind classes, `SEVERITY_CHART_COLORS` for raw hex values Recharts needs). Fonts are `Geist`/`Geist Mono` via `next/font/google`, with monospace used throughout for technical values (timestamps, IDs, attribute keys/values) per this project's design intent of sustained, low-fatigue reading for an observability tool.
 
-## Known gaps (as of last review)
+**Testing:**
+- Unit tests (Vitest + jsdom + Testing Library): `lib/otlp-utils.test.ts`, `lib/use-debounced-value.test.ts`. Config in `vitest.config.ts`, setup in `vitest.setup.ts`.
+- E2e tests (Playwright): `e2e/*.spec.ts` cover grouping, histogram brushing, keyboard nav, the log list, refresh, and search/filters, with shared helpers in `e2e/helpers.ts` and fixtures in `e2e/fixtures`. Config in `playwright.config.ts`.
 
-- `react-window` is a listed dependency but not actually used anywhere — `LogList`/`LogGroupedView` render full arrays via `.map()`, no virtualization.
-- Keyboard nav (`j`/`k`/`Enter`/`Esc`) is implemented per-`LogList` instance with a `document`-level listener; in grouped view with multiple groups expanded, multiple listeners fire concurrently.
-- `/api/logs` sets `next: { revalidate: 30 }`, which caches the upstream response server-side for 30s — the UI's "Refresh" button can appear to no-op within that window since the upstream mock API otherwise returns new random data on every call.
+**CI:** GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR to `main`, with two jobs: `lint-typecheck-unit` (lint, `tsc --noEmit`, `pnpm test`) and `e2e` (Playwright, Chromium only, with a browser-binary cache keyed on `pnpm-lock.yaml` and a report artifact uploaded on failure).
