@@ -52,7 +52,23 @@ pnpm test      # unit tests (vitest)
 pnpm test:e2e  # e2e tests (playwright)
 ```
 
-## Known trade-offs
+## Possible improvements
 
-- Keyboard navigation (`j`/`k`/`Enter`) is scoped to the flat view only. Grouped view renders one list per service group; wiring a single global keyboard-nav scope across multiple independently-collapsible lists was left out to avoid a heavier state-lifting change for a secondary affordance — expand/collapse via click works the same in both views.
-- The histogram's drag-to-brush interaction uses Recharts' `activeTooltipIndex` rather than a label-based lookup, specifically to stay correct when the log span crosses a UTC day boundary (two buckets can otherwise land on the same displayed `HH:MM:SS`).
+**More filters**
+- Filter by service (`serviceName`/`serviceNamespace`) via multi-select, independent of grouped view or free-text search.
+- Field-targeted search (e.g. `service:checkout`, `trace:abc123`) instead of only substring matching across an aggregated haystack.
+- Filter by a specific attribute key/value (log or resource attributes), not just aggregate text search.
+- An explicit date-range input as an alternative to dragging on the histogram.
+- Persist active filters in the URL so a filtered view can be shared/bookmarked.
+
+**More charts**
+- A per-service volume breakdown (bar/pie) to spot which service is generating the most log traffic.
+- An error-rate-over-time series (ERROR+FATAL as a share of total per bucket), separate from the stacked raw-volume histogram.
+- A "top values" panel for a selected attribute (e.g. `http.status_code`), surfacing data already captured but currently unused.
+- Adaptive histogram bucket count (currently fixed at 30) tied to the selected time range or filtered dataset size, with a more stable axis domain across filter changes.
+
+**Handling much larger datasets**
+- Pagination or streaming support in `app/api/logs/route.ts`, which currently proxies one full JSON payload with no pagination.
+- Virtualizing the group list itself in `LogGroupedView` (today only the rows *within* each group are virtualized via `react-window`; every group panel still mounts unconditionally).
+- Offloading filter/search recomputation for large datasets (e.g. a Web Worker), and debouncing severity/brush filter changes the same way search input already is.
+- A safety cap on in-memory sort/render size, with an explicit "showing latest N of M" indicator if the payload grows far beyond what's comfortable to hold in the browser.
