@@ -76,7 +76,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         </p>
         {hasEndMs ? (
           <p className="text-muted-foreground text-[10px] mt-0.5">
-            {`through ${hhmm(new Date(endMs))}:${pad(new Date(endMs).getUTCSeconds())}`}
+            {`until ${hhmm(new Date(endMs))}:${pad(new Date(endMs).getUTCSeconds())}`}
           </p>
         ) : null}
       </div>
