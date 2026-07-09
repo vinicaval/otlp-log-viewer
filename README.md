@@ -28,6 +28,8 @@ Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts 
 - `lib/otlp-types.ts` / `lib/otlp-utils.ts` — OTLP wire types kept separate from the app's flattened `FlatLogRecord` shape, with all the nested-data transformation (nanosecond timestamp parsing via `BigInt`, OTLP `AnyValue` → plain string, severity-number → severity-band mapping, histogram bucketing) isolated into pure, unit-testable functions rather than scattered across components.
 - `components/log-viewer.tsx` owns all UI state (search, filters, density, view mode, time-brush range) and derives the filtered/bucketed data via `useMemo`; `LogList`, `LogGroupedView`, and `LogHistogram` are otherwise presentational.
 
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full architecture doc, and [docs/PRD.md](./docs/PRD.md) for the product requirements doc.
+
 ## CI
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR to `main`: a lint + typecheck + unit-test job, and a separate Playwright e2e job (Chromium, with a cached browser install and a report artifact uploaded on failure).
