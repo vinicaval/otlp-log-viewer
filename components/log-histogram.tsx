@@ -109,8 +109,9 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
   const handleMouseDown = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
-      const idx = e?.activeTooltipIndex
-      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
+      // Recharts v3's activeTooltipIndex is a string (or null), not a number.
+      const idx = Number(e?.activeTooltipIndex)
+      if (!Number.isInteger(idx) || idx < 0 || idx >= buckets.length) return
       setSelectionStart(idx)
       setSelectionCurrent(idx)
       setIsDragging(true)
@@ -122,8 +123,8 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDragging) return
-      const idx = e?.activeTooltipIndex
-      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
+      const idx = Number(e?.activeTooltipIndex)
+      if (!Number.isInteger(idx) || idx < 0 || idx >= buckets.length) return
       setSelectionCurrent(idx)
     },
     [isDragging, buckets.length]
