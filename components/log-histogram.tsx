@@ -101,6 +101,20 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   )
 }
 
+// Recharts' mouse handlers pass `activeTooltipIndex` as part of the first
+// argument. In Recharts v2 this was a `number`; in v3 it's a `string | null`
+// (see `TooltipIndex` in recharts' `state/tooltipSlice` types). Coerce
+// through `Number` and validate with `Number.isInteger` so this keeps
+// working regardless of which shape the installed version hands us —
+// a strict `typeof idx === 'number'` check silently breaks the whole
+// drag-to-brush feature the moment `activeTooltipIndex` is a numeric string.
+export function parseActiveTooltipIndex(idx: unknown, bucketCount: number): number | null {
+  if (idx === null || idx === undefined || idx === '') return null
+  const n = Number(idx)
+  if (!Number.isInteger(n) || n < 0 || n >= bucketCount) return null
+  return n
+}
+
 export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogramProps) {
   const [selectionStart, setSelectionStart] = useState<number | null>(null)
   const [selectionCurrent, setSelectionCurrent] = useState<number | null>(null)
@@ -109,8 +123,8 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
   const handleMouseDown = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
-      const idx = e?.activeTooltipIndex
-      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
+      const idx = parseActiveTooltipIndex(e?.activeTooltipIndex, buckets.length)
+      if (idx === null) return
       setSelectionStart(idx)
       setSelectionCurrent(idx)
       setIsDragging(true)
@@ -122,8 +136,8 @@ export function LogHistogram({ buckets, brushRange, onBrushChange }: LogHistogra
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDragging) return
-      const idx = e?.activeTooltipIndex
-      if (typeof idx !== 'number' || idx < 0 || idx >= buckets.length) return
+      const idx = parseActiveTooltipIndex(e?.activeTooltipIndex, buckets.length)
+      if (idx === null) return
       setSelectionCurrent(idx)
     },
     [isDragging, buckets.length]
