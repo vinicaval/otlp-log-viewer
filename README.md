@@ -68,3 +68,6 @@ pnpm test:e2e  # e2e tests (playwright)
 
 **Handling much larger datasets**
 - Pagination or streaming support in `app/api/logs/route.ts`, which currently proxies one full JSON payload with no pagination.
+
+**Monitoring**
+- Add Dash0 website monitoring to get web vitals information.
