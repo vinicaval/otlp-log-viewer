@@ -60,10 +60,7 @@ pnpm test:e2e  # e2e tests (playwright)
 - Persist active filters in the URL so a filtered view can be shared/bookmarked.
 
 **More charts**
-- A per-service volume breakdown (bar/pie) to spot which service is generating the most log traffic.
-- An error-rate-over-time series (ERROR+FATAL as a share of total per bucket), separate from the stacked raw-volume histogram.
-- A "top values" panel for a selected attribute (e.g. `http.status_code`), surfacing data already captured but currently unused.
-- Adaptive histogram bucket count (currently fixed at 30) tied to the selected time range or filtered dataset size, with a more stable axis domain across filter changes.
+- Toggle between line charts and bar charts; line charts can give hints of trends.
 
 **API improvements**
 - Server-side filters: accept query params (severity, service, search, time range) in `app/api/logs/route.ts` so filtering happens before the payload is sent to the client, instead of shipping the full dataset every time.
