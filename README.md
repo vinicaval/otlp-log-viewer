@@ -28,8 +28,6 @@ Next.js (App Router) + TypeScript (strict) + Tailwind v4 + shadcn/ui + Recharts 
 - `lib/otlp-types.ts` / `lib/otlp-utils.ts` — OTLP wire types kept separate from the app's flattened `FlatLogRecord` shape, with all the nested-data transformation (nanosecond timestamp parsing via `BigInt`, OTLP `AnyValue` → plain string, severity-number → severity-band mapping, histogram bucketing) isolated into pure, unit-testable functions rather than scattered across components.
 - `components/log-viewer.tsx` owns all UI state (search, filters, density, view mode, time-brush range) and derives the filtered/bucketed data via `useMemo`; `LogList`, `LogGroupedView`, and `LogHistogram` are otherwise presentational.
 
-See [CLAUDE.md](./CLAUDE.md) for a more detailed architecture walkthrough.
-
 ## CI
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR to `main`: a lint + typecheck + unit-test job, and a separate Playwright e2e job (Chromium, with a cached browser install and a report artifact uploaded on failure).
@@ -55,9 +53,7 @@ pnpm test:e2e  # e2e tests (playwright)
 ## Possible improvements
 
 **More filters**
-- Filter by service (`serviceName`/`serviceNamespace`) via multi-select, independent of grouped view or free-text search.
-- Field-targeted search (e.g. `service:checkout`, `trace:abc123`) instead of only substring matching across an aggregated haystack.
-- Filter by a specific attribute key/value (log or resource attributes), not just aggregate text search.
+- Advanced filter capability through rich query language or query builder.
 - An explicit date-range input as an alternative to dragging on the histogram.
 - Persist active filters in the URL so a filtered view can be shared/bookmarked.
 
@@ -69,10 +65,6 @@ pnpm test:e2e  # e2e tests (playwright)
 
 **API improvements**
 - Server-side filters: accept query params (severity, service, search, time range) in `app/api/logs/route.ts` so filtering happens before the payload is sent to the client, instead of shipping the full dataset every time.
-- Minimal caching for histogram buckets: cache computed bucket results (e.g. keyed by filter/time-range params) to avoid recomputing `buildHistogram` on every request/filter change for the same inputs.
 
 **Handling much larger datasets**
 - Pagination or streaming support in `app/api/logs/route.ts`, which currently proxies one full JSON payload with no pagination.
-- Virtualizing the group list itself in `LogGroupedView` (today only the rows *within* each group are virtualized via `react-window`; every group panel still mounts unconditionally).
-- Offloading filter/search recomputation for large datasets (e.g. a Web Worker), and debouncing severity/brush filter changes the same way search input already is.
-- A safety cap on in-memory sort/render size, with an explicit "showing latest N of M" indicator if the payload grows far beyond what's comfortable to hold in the browser.
